@@ -10,18 +10,16 @@ namespace forestListed
     {
         static void Main(string[] args)
         {
-            if (args != null) //we only want to display this the first time
-            {
-                Console.WriteLine("######################################");
-                Console.WriteLine("BURNING FOREST SIMULATOR by Alan Nardo");
-                Console.WriteLine("######################################");
-            }
+
+            Console.WriteLine("######################################");
+            Console.WriteLine("BURNING FOREST SIMULATOR by Alan Nardo");
+            Console.WriteLine("######################################");
 
             Cell[,] forestMap;
             Random randy = new Random();
-            List<int[]> burnspots = new List<int[]>() 
+            List<Tuple<int, int>> burnspots = new List<Tuple<int, int>>() 
             { 
-                new int[] { 10, 10 } 
+                new Tuple<int,int> ( 10, 10 )
             };
             Terrain terrain = new Terrain(); //terrain generation. need to make this optional
             
@@ -64,12 +62,12 @@ namespace forestListed
 
             return forestGrid;
         }
-        public static void Display(List<int[]> fires, Cell[,] forest)
+        public static void Display(List<Tuple<int, int>> fires, Cell[,] forest)
         {
             PaintMap();
             for (int i = 0; i < fires.Count; i++)
             {
-                Console.Write("(" + fires[i][0] + ", " + fires[i][1] + "), ");
+                Console.Write("(" + fires[i].Item1 + ", " + fires[i].Item2 + "), ");
             }
             Console.WriteLine(fires.Count);
             for (int i = 0; i < forest.GetLength(0); i++) //loop through outer
@@ -112,12 +110,12 @@ namespace forestListed
             {
                 for(int i = 0; i < fires.Count; i++)
                 {
-                    forest[fires[i][0], fires[i][1]].SetState('x');
+                    forest[fires[i].Item1, fires[i].Item2].SetState('x');
                 }
             }
         }//end display
 
-        public static void Handler(List<int[]> fires, Cell[,] forest, Random rand)
+        public static void Handler(List<Tuple<int, int>> fires, Cell[,] forest, Random rand)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Please press 'Enter' to continue...");
@@ -125,41 +123,33 @@ namespace forestListed
 
             if (keyPress.Key == ConsoleKey.Enter)
             {
-                List<int[]> updatedList = BurnSpread(fires, forest, rand);
+                List<Tuple<int, int>> updatedList = BurnSpread(fires, forest, rand);
                 Display(updatedList, forest);
 
                 if (updatedList.Count == 0) //if they are the same, the game ends
                 {
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.BackgroundColor = ConsoleColor.Black;
-                    Console.WriteLine("The fire cannot spread anymore the game is over. Press R to restart, or any other key to quit.");
-                    ConsoleKeyInfo option = Console.ReadKey();
-                    if (option.Key == ConsoleKey.R)
-                    {
-                        Console.Clear(); //start a new game!
-                        Main(null);
-                    }
-                    else 
-                    {
-                        Environment.Exit(0); // kind of clunky
-                    }
+                    Console.WriteLine("The fire cannot spread anymore the game is over. Press any key to quit.");
+                    Environment.Exit(0); // kind of clunky
+
                 }
                 Handler(updatedList, forest, rand);
             }
         } // end Runner
-        public static List<int[]> BurnSpread(List<int[]> burnzones, Cell[,] forest, Random rand)
+        public static List<Tuple<int, int>> BurnSpread(List<Tuple<int, int>> burnzones, Cell[,] forest, Random rand)
         {
-            List<int[]> newburns = new List<int[]>();
+            List<Tuple<int, int>> newburns = new List<Tuple<int, int>>();
             
             if (burnzones.Count > 0) 
             {
                 for (int i = 0; i < burnzones.Count; i++)
                 {
-                    IDictionary<int[], char> returns = new Dictionary<int[], char>();
+                    IDictionary<Tuple<int, int>, char> returns = new Dictionary<Tuple<int, int>, char>();
                     
                     
-                    int x = burnzones[i][0];
-                    int y = burnzones[i][1];
+                    int x = burnzones[i].Item1;
+                    int y = burnzones[i].Item2;
 
                     int s = Utilities.Clamp(x + 1, 0, 20);
                     int n = Utilities.Clamp(x - 1, 0, 20);
@@ -173,267 +163,312 @@ namespace forestListed
 
                     if (x == 0 && y == 0) //NW corner only south and east
                     {
-                        int[] south = { s, y };
-                        int[] east = { x, e };
+                        Tuple<int, int> south = new Tuple<int, int>( s, y );
+                        Tuple<int, int> east = new Tuple<int, int>( x, e );
 
                         if (forest[s, y].GetState() == '&')
                         {
                             forest[s, y].SetState(Utilities.StateChangeCheck(forest[s, y], rand));
+                            returns.Add(south, forest[s, y].GetState());
                         }
                         if (forest[x, e].GetState() == '&')
                         {
                             forest[x, e].SetState(Utilities.StateChangeCheck(forest[x, e], rand));
+                            returns.Add(east, forest[x, e].GetState());
                         }
 
-                        returns.Add(south, forest[s, y].GetState());
-                        returns.Add(east, forest[x, e].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn.Equals(entry.Key))
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x == 20 && y == 20) //SE corner only north and west
                     {
-                        int[] north = { n, y };
-                        int[] west = { x, w };
+
+                        Tuple<int, int> north = new Tuple<int, int>(n, y);
+                        Tuple<int, int> west = new Tuple<int, int>(x, w);
 
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[n, y].SetState(Utilities.StateChangeCheck(forest[n, y], rand));
+                            returns.Add(north, forest[n, y].GetState());
                         }
                         if (forest[x, w].GetState() == '&')
                         {
                             forest[x, w].SetState(Utilities.StateChangeCheck(forest[x, w], rand));
+                            returns.Add(west, forest[x, w].GetState());
                         }
 
-                        returns.Add(north, forest[n, y].GetState());
-                        returns.Add(west, forest[x, w].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x == 20 && y == 0) //SW corner only north and east
                     {
-                        int[] north = { n, y };
-                        int[] east = { x, e };
+                        Tuple<int, int> north = new Tuple<int, int>(n, y);
+                        Tuple<int, int> east = new Tuple<int, int>(x, e);
 
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[n, y].SetState(Utilities.StateChangeCheck(forest[n, y], rand));
+                            returns.Add(north, forest[n, y].GetState());
                         }
                         if (forest[x, e].GetState() == '&')
                         {
                             forest[x, e].SetState(Utilities.StateChangeCheck(forest[x, e], rand));
+                            returns.Add(east, forest[x, e].GetState());
                         }
 
-                        returns.Add(north, forest[n, y].GetState());
-                        returns.Add(east, forest[x, e].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x == 0 && y == 20) //NE corner only south and west
                     {
-                        int[] west = { x, w };
-                        int[] south = { s, y };
+                        Tuple<int, int> west = new Tuple<int, int>(x, w);
+                        Tuple<int, int> south = new Tuple<int, int>(s, y);
 
                         if (forest[s, y].GetState() == '&')
                         {
                             forest[s, y].SetState(Utilities.StateChangeCheck(forest[s, y], rand));
+                            returns.Add(south, forest[s, y].GetState());
                         }
                         if (forest[x, w].GetState() == '&')
                         {
                             forest[x, w].SetState(Utilities.StateChangeCheck(forest[x, w], rand));
+                            returns.Add(west, forest[x, w].GetState());
                         }
 
-                        returns.Add(west, forest[x, w].GetState());
-                        returns.Add(south, forest[s, y].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x == 0 && y < 20 && y > 0) //along W edge ignore west spread
                     {
-                        int[] north = { n, y };
-                        int[] south = { s, y };
-                        int[] east = { x, e };
+                        Tuple<int, int> north = new Tuple<int, int>(n, y);
+                        Tuple<int, int> south = new Tuple<int, int>(s, y);
+                        Tuple<int, int> east = new Tuple<int, int>(x, e);
 
                         if (forest[s, y].GetState() == '&')
                         {
                             forest[s, y].SetState(Utilities.StateChangeCheck(forest[s, y], rand));
+                            returns.Add(south, forest[s, y].GetState());
                         }
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[n, y].SetState(Utilities.StateChangeCheck(forest[n, y], rand));
+                            returns.Add(north, forest[n, y].GetState());
                         }
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[x, e].SetState(Utilities.StateChangeCheck(forest[x, e], rand));
+                            returns.Add(east, forest[x, e].GetState());
                         }
 
-                        returns.Add(east, forest[x, e].GetState());
-                        returns.Add(south, forest[s, y].GetState());
-                        returns.Add(north, forest[n, y].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x > 0 && x < 20 && y == 0) // along N edge ignore north spread
                     {
-                        int[] west = { x, w };
-                        int[] south = { s, y };
-                        int[] east = { x, e };
+                        Tuple<int, int> west = new Tuple<int, int>(x, w);
+                        Tuple<int, int> south = new Tuple<int, int>(s, y);
+                        Tuple<int, int> east = new Tuple<int, int>(x, e);
 
                         if (forest[s, y].GetState() == '&')
                         {
                             forest[s, y].SetState(Utilities.StateChangeCheck(forest[s, y], rand));
+                            returns.Add(south, forest[s, y].GetState());
                         }
                         if (forest[x, e].GetState() == '&')
                         {
                             forest[x, e].SetState(Utilities.StateChangeCheck(forest[x, e], rand));
+                            returns.Add(east, forest[x, e].GetState());
                         }
                         if (forest[x, w].GetState() == '&')
                         {
                             forest[x, w].SetState(Utilities.StateChangeCheck(forest[x, w], rand));
+                            returns.Add(west, forest[x, w].GetState());
                         }
 
-                        returns.Add(east, forest[x, e].GetState());
-                        returns.Add(south, forest[s, y].GetState());
-                        returns.Add(west, forest[x, w].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x == 20 && y > 0 && y < 20) // along E edge ignore east spread
                     {
-                        int[] north = { n, y };
-                        int[] west = { x, w };
-                        int[] south = { s, y };
+                        Tuple<int, int> north = new Tuple<int, int>(n, y);
+                        Tuple<int, int> west = new Tuple<int, int>(x, w);
+                        Tuple<int, int> south = new Tuple<int, int>(s, y);
 
                         if (forest[s, y].GetState() == '&')
                         {
                             forest[s, y].SetState(Utilities.StateChangeCheck(forest[s, y], rand));
+                            returns.Add(south, forest[s, y].GetState());
                         }
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[n, y].SetState(Utilities.StateChangeCheck(forest[n, y], rand));
+                            returns.Add(north, forest[n, y].GetState());
                         }
                         if (forest[x, w].GetState() == '&')
                         {
                             forest[x, w].SetState(Utilities.StateChangeCheck(forest[x, w], rand));
+                            returns.Add(west, forest[x, w].GetState());
                         }
 
-                        returns.Add(south, forest[s, y].GetState());
-                        returns.Add(west, forest[x, w].GetState());
-                        returns.Add(north, forest[n, y].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x > 0 && x < 20 && y == 20) // along S edge ignore south spread
                     {
-                        int[] north = { n, y };
-                        int[] west = { x, w };
-                        int[] east = { x, e };
+                        Tuple<int, int> north = new Tuple<int, int>(n, y);
+                        Tuple<int, int> west = new Tuple<int, int>(x, w);
+                        Tuple<int, int> east = new Tuple<int, int>(x, e);
 
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[n, y].SetState(Utilities.StateChangeCheck(forest[n, y], rand));
+                            returns.Add(north, forest[n, y].GetState());
                         }
                         if (forest[x, e].GetState() == '&')
                         {
                             forest[x, e].SetState(Utilities.StateChangeCheck(forest[x, e], rand));
+                            returns.Add(east, forest[x, e].GetState());
                         }
                         if (forest[x, w].GetState() == '&')
                         {
                             forest[x, w].SetState(Utilities.StateChangeCheck(forest[x, w], rand));
+                            returns.Add(west, forest[x, w].GetState());
                         }
 
-                        returns.Add(east, forest[x, e].GetState());
-                        returns.Add(west, forest[x, w].GetState());
-                        returns.Add(north, forest[n, y].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (burn != entry.Key)
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     else if (x > 0 && x < 20 && y > 0 && y < 20) // anywhere not along an edge
                     {
-                        int[] north = { n, y };
-                        int[] west = { x, w };
-                        int[] south = { s, y };
-                        int[] east = { x, e };
+                        Tuple<int, int> north = new Tuple<int, int>(n, y);
+                        Tuple<int, int> west = new Tuple<int, int>(x, w);
+                        Tuple<int, int> south = new Tuple<int, int>(s, y);
+                        Tuple<int, int> east = new Tuple<int, int>(x, e);
 
                         if (forest[s, y].GetState() == '&')
                         {
                             forest[s, y].SetState(Utilities.StateChangeCheck(forest[s, y], rand));
+                            returns.Add(south, forest[s, y].GetState());
                         }
                         if (forest[n, y].GetState() == '&')
                         {
                             forest[n, y].SetState(Utilities.StateChangeCheck(forest[n, y], rand));
+                            returns.Add(north, forest[n, y].GetState());
                         }
                         if (forest[x, e].GetState() == '&')
                         {
                             forest[x, e].SetState(Utilities.StateChangeCheck(forest[x, e], rand));
+                            returns.Add(east, forest[x, e].GetState());
                         }
                         if (forest[x, w].GetState() == '&')
                         {
                             forest[x, w].SetState(Utilities.StateChangeCheck(forest[x, w], rand));
+                            returns.Add(west, forest[x, w].GetState());
                         }
 
-                        returns.Add(east, forest[x, e].GetState());
-                        returns.Add(south, forest[s, y].GetState());
-                        returns.Add(west, forest[x, w].GetState());
-                        returns.Add(north, forest[n, y].GetState());
-
-                        foreach (KeyValuePair<int[], char> entry in returns)
+                        foreach (KeyValuePair<Tuple<int, int>, char> entry in returns)
                         {
-                            if (entry.Value == 'x' && !newburns.Contains(entry.Key))
+                            if (entry.Value == 'x')
                             {
-                                newburns.Add(entry.Key);
+                                foreach (Tuple<int, int> burn in burnzones)
+                                {
+                                    if (!burn.Equals(entry.Key))
+                                    {
+                                        newburns.Add(entry.Key);
+                                    }
+                                }
                             }
                         }
                     }
                     forest[x, y].SetState('_');
-                    burnzones.RemoveAt(i);
                 }
             }
             burnzones.Clear();

@@ -4,3 +4,9 @@ C:\dev\forest3\forestListed\forestListed\bin\Debug\forestListed.pdb
 C:\dev\forest3\forestListed\forestListed\obj\Debug\forestListed.csproj.CoreCompileInputs.cache
 C:\dev\forest3\forestListed\forestListed\obj\Debug\forestListed.exe
 C:\dev\forest3\forestListed\forestListed\obj\Debug\forestListed.pdb
+C:\Dev\forestListed\forestListed\bin\Debug\forestListed.exe.config
+C:\Dev\forestListed\forestListed\bin\Debug\forestListed.exe
+C:\Dev\forestListed\forestListed\bin\Debug\forestListed.pdb
+C:\Dev\forestListed\forestListed\obj\Debug\forestListed.csproj.CoreCompileInputs.cache
+C:\Dev\forestListed\forestListed\obj\Debug\forestListed.exe
+C:\Dev\forestListed\forestListed\obj\Debug\forestListed.pdb
