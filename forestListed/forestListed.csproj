@@ -46,7 +46,6 @@
     <Compile Include="Cell.cs" />
     <Compile Include="EqualityComparer.cs" />
     <Compile Include="Map.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Terrain.cs" />
     <Compile Include="Utilities.cs" />

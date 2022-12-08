@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace forestListed
 {
-    public class EqualityComparer
+    /* 
+     * Credit to user Viktor Lova @ Stackoverflow:
+       https://stackoverflow.com/a/17275935/11790979
+    */
+    class SameTuplesComparer<T1, T2> : EqualityComparer<Tuple<T1, T2>>
     {
-        public bool Equals(int[] x, int[] y)
+        public override bool Equals(Tuple<T1, T2> t1, Tuple<T1, T2> t2)
         {
-            string stringx = string.Join(",", x);
-            string stringy = string.Join(",", y);
-            Console.WriteLine("x: " + stringx + "y: " + stringy);
-            return stringx == stringy;
+            return t1.Item1.Equals(t2.Item1) && t1.Item2.Equals(t2.Item2);
         }
 
-        public int GetHashCode(int[] codeh)
+
+        public override int GetHashCode(Tuple<T1, T2> t)
         {
-            return codeh.GetHashCode();
+            return base.GetHashCode();
         }
     }
 }

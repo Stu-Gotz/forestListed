@@ -10,3 +10,4 @@ C:\Dev\forestListed\forestListed\bin\Debug\forestListed.pdb
 C:\Dev\forestListed\forestListed\obj\Debug\forestListed.csproj.CoreCompileInputs.cache
 C:\Dev\forestListed\forestListed\obj\Debug\forestListed.exe
 C:\Dev\forestListed\forestListed\obj\Debug\forestListed.pdb
+C:\Dev\forestListed\forestListed\obj\Debug\forestListed.csproj.AssemblyReference.cache

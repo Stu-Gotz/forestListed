@@ -26,5 +26,17 @@ namespace forestListed
             }
          return terrain;
         }
+
+        public static bool ActivateTerrain()
+        {
+            Console.WriteLine("Press Y to activate terrain, any other key to continue without.");
+            ConsoleKey reply = Console.ReadKey().Key;
+            Console.WriteLine();
+            if (reply == ConsoleKey.Y)
+            {
+                return true;
+            }
+            return false;
+        } // end ActivateTerrain
     }
 }
